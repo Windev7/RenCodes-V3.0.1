@@ -3,116 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RenCodes Studio</title>
+    <title>RenCodes Professional</title>
     
     <script src="https://unpkg.com/blockly/blockly.min.js"></script>
     <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
 
     <style>
         :root {
-            --primary: #6366f1;
-            --bg: #0f172a;
-            --stage-bg: #ffffff;
-            --text: #f8fafc;
+            --brand: #4c97ff;
+            --dark-bg: #111827;
+            --panel: #1f2937;
+            --accent: #818cf8;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
-            background-color: var(--bg);
-            color: var(--text);
-            overflow: hidden;
+            background-color: var(--dark-bg);
+            color: white;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            height: 100vh;
         }
 
-        /* Header */
         header {
-            padding: 1rem 2rem;
-            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 20px;
+            background: var(--panel);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid #374151;
+            z-index: 10;
         }
 
-        /* Layout */
-        #main-container {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            flex-grow: 1;
+        /* Responsive Layout */
+        #container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            flex-direction: row;
         }
 
-        #blocklyDiv {
-            height: 100%;
-            width: 100%;
+        @media (max-width: 800px) {
+            #container { flex-direction: column; }
+            #stage-area { width: 100% !important; height: 300px; }
+            #blocklyArea { flex: 1; }
         }
 
-        /* Stage (The Sprite Area) */
+        #blocklyArea { flex: 1; position: relative; }
+        #blocklyDiv { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
+
         #stage-area {
-            background: #1e293b;
-            padding: 20px;
+            width: 380px;
+            background: #0f172a;
+            border-left: 1px solid #374151;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            gap: 15px;
         }
 
         #stage {
             width: 100%;
             height: 300px;
-            background: var(--stage-bg);
+            background: white;
             border-radius: 12px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
         }
 
         #sprite {
-            width: 50px;
-            height: 50px;
+            width: 60px;
             position: absolute;
-            top: 125px;
-            left: 125px;
-            transition: all 0.3s ease;
-            cursor: pointer;
+            top: 120px;
+            left: 140px;
+            transition: transform 0.2s, top 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
         }
 
-        /* Modern Buttons */
-        .btn-group { display: flex; gap: 10px; }
+        .controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
         button {
-            padding: 10px 20px;
+            padding: 8px 16px;
+            border-radius: 6px;
             border: none;
-            border-radius: 8px;
-            font-weight: bold;
             cursor: pointer;
-            transition: transform 0.2s;
+            font-weight: 600;
+            transition: 0.2s;
         }
-        .btn-run { background: #22c55e; color: white; }
-        .btn-reset { background: #ef4444; color: white; }
-        button:hover { transform: scale(1.05); }
 
-        /* Responsive Design */
-        @media (max-width: 900px) {
-            #main-container { grid-template-columns: 1fr; grid-template-rows: 1fr 400px; }
-            #stage-area { border-left: none; border-top: 1px solid #ccc; }
+        .btn-go { background: #22c55e; color: white; }
+        .btn-stop { background: #ef4444; color: white; }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        #console {
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #94a3b8;
+            height: 100px;
+            overflow-y: auto;
         }
     </style>
 </head>
 <body>
 
 <header>
-    <h2 style="margin:0; color: #818cf8;">RenCodes <span style="font-weight: 300; font-size: 0.8em;">v1.0</span></h2>
-    <div class="btn-group">
-        <button class="btn-reset" onclick="resetSprite()">Reset</button>
-        <button class="btn-run" onclick="runRenCode()">▶ Run Project</button>
+    <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:30px; height:30px; background:var(--brand); border-radius:6px;"></div>
+        <h2 style="margin:0">RenCodes</h2>
+    </div>
+    <div class="controls">
+        <button class="btn-stop" onclick="resetAll()">Reset</button>
+        <button class="btn-go" onclick="runCode()">▶ Run</button>
     </div>
 </header>
 
-<div id="main-container">
-    <div id="blocklyDiv"></div>
+<div id="container">
+    <div id="blocklyArea">
+        <div id="blocklyDiv"></div>
+    </div>
 
     <div id="stage-area">
         <div id="stage">
-            <img id="sprite" src="
+            <img id="sprite" src="https://openclipart.org/download/216413/coniglio_rabbit.svg">
+        </div>
+        <div id="console">Log: Workspace ready...</div>
+    </div>
+</div>
+
+<xml id="toolbox" style="display: none">
+    <category name="Motion" colour="#4C97FF">
+        <block type="move_steps"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
+        <block type="rotate_sprite"><value name="DEG"><shadow type="math_number"><field name="NUM">15</field></shadow></value></block>
+        <block type="jump_sprite"></block>
+    </category>
+    <category name="Looks" colour="#9966FF">
+        <block type="change_color"></block>
+        <block type="say_text"><value name="TEXT"><shadow type="text"><field name="TEXT">Hello!</field></shadow></value></block>
+        <block type="visibility_sprite"></block>
+    </category>
+    <category name="Control" colour="#FFAB19">
+        <block type="controls_repeat_ext"><value name="TIMES"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
+        <block type="controls_if"></block>
+    </category>
+    <category name="Logic" colour="#5B80A5">
+        <block type="logic_compare"></block>
+        <block type="logic_operation"></block>
+        <block type="logic_boolean"></block>
+    </category>
+    <category name="Math" colour="#59C059">
+        <block type="math_number"></block>
+        <block type="math_arithmetic"></block>
+    </category>
+</xml>
+
+<script>
+    // --- 1. Custom Block Definitions ---
+    Blockly.defineBlocksWithJsonArray([
+        { "type": "move_steps", "message0": "Move %1 steps", "args0": [{ "type": "input_value", "name": "STEPS", "check": "Number" }], "previousStatement": null, "nextStatement": null, "colour": 230 },
+        { "type": "rotate_sprite", "message0": "Rotate %1 degrees", "args0": [{ "type": "input_value", "name": "DEG", "check": "Number" }], "previousStatement": null, "nextStatement": null, "colour": 230 },
+        { "type": "jump_sprite", "message0": "Jump!", "previousStatement": null, "nextStatement": null, "colour": 230 },
+        { "type": "change_color", "message0": "Change Color", "previousStatement": null, "nextStatement": null, "colour": 260 },
+        { "type": "say_text", "message0": "Say %1", "args0": [{ "type": "input_value", "name": "TEXT", "check": "String" }], "previousStatement": null, "nextStatement": null, "colour": 260 },
+        { "type": "visibility_sprite", "message0": "Toggle Visibility", "previousStatement": null, "nextStatement": null, "colour": 260 }
+    ]);
+
+    // --- 2. Generators ---
+    Blockly.JavaScript['move_steps'] = function(block) {
+        var steps = Blockly.JavaScript.valueToCode(block, 'STEPS', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+        return `move(${steps});\n`;
+    };
+    Blockly.JavaScript['rotate_sprite'] = function(block) {
+        var deg = Blockly.JavaScript.valueToCode(block, 'DEG', Blockly.JavaScript.ORDER_ATOMIC) || '0';
+        return `rotate(${deg});\n`;
+    };
+    Blockly.JavaScript['jump_sprite'] = function() { return 'jump();\n'; };
+    Blockly.JavaScript['change_color'] = function() { return 'colorShift();\n'; };
+    Blockly.JavaScript['say_text'] = function(block) {
+        var text = Blockly.JavaScript.valueToCode(block, 'TEXT', Blockly.JavaScript.ORDER_ATOMIC) || "''";
+        return `log(${text});\n`;
+    };
+    Blockly.JavaScript['visibility_sprite'] = function() { return 'toggleVis();\n'; };
+
+    // --- 3. Engine Logic ---
+    const sprite = document.getElementById('sprite');
+    let x = 140, angle = 0, hue = 0, visible = true;
+
+    function move(d) { x += parseInt(d); sprite.style.left = x + 'px'; }
+    function rotate(d) { angle += parseInt(d); sprite.style.transform = `rotate(${angle}deg)`; }
+    function jump() { 
+        sprite.style.top = '50px'; 
+        setTimeout(() => sprite.style.top = '120px', 300); 
+    }
+    function colorShift() { hue += 45; sprite.style.filter = `underline hue-rotate(${hue}deg)`; }
+    function toggleVis() { visible = !visible; sprite.style.opacity = visible ? 1 : 0; }
+    function log(t) { document.getElementById('console').innerText = "Sprite says: " + t; }
+
+    function resetAll() {
+        x = 140; angle = 0; hue = 0; visible = true;
+        sprite.style = "";
+        sprite.style.left = '140px';
+        sprite.style.top = '120px';
+        document.getElementById('console').innerText = "Log: Reset complete.";
+    }
+
+    // --- 4. Initialization ---
+    const workspace = Blockly.inject('blocklyDiv', {
+        toolbox: document.getElementById('toolbox'),
+        theme: Blockly.Themes.Dark,
+        renderer: 'zelos',
+        zoom: { controls: true, wheel: true, startScale: 0.8 }
+    });
+
+    // Make it responsive
+    window.addEventListener('resize', () => Blockly.svgResize(workspace));
+
+    function runCode() {
+        const code = Blockly.JavaScript.workspaceToCode(workspace);
+        try { eval(code); } catch (e) { alert(e); }
+    }
+</script>
+
+</body>
+</html>
