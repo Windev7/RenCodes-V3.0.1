@@ -1,56 +1,118 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>RenCodes - Block Coding</title>
-  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
-  <style>
-    #app-container { display: flex; height: 90vh; }
-    #blocklyDiv { width: 70%; height: 100%; }
-    #output-pane { width: 30%; background: #f0f0f0; padding: 20px; border-left: 2px solid #ccc; }
-    .header { height: 10vh; background: #4c97ff; color: white; display: flex; align-items: center; padding-left: 20px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RenCodes Studio</title>
+    
+    <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+    <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --bg: #0f172a;
+            --stage-bg: #ffffff;
+            --text: #f8fafc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Header */
+        header {
+            padding: 1rem 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Layout */
+        #main-container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            flex-grow: 1;
+        }
+
+        #blocklyDiv {
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Stage (The Sprite Area) */
+        #stage-area {
+            background: #1e293b;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #stage {
+            width: 100%;
+            height: 300px;
+            background: var(--stage-bg);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        #sprite {
+            width: 50px;
+            height: 50px;
+            position: absolute;
+            top: 125px;
+            left: 125px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        /* Modern Buttons */
+        .btn-group { display: flex; gap: 10px; }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .btn-run { background: #22c55e; color: white; }
+        .btn-reset { background: #ef4444; color: white; }
+        button:hover { transform: scale(1.05); }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            #main-container { grid-template-columns: 1fr; grid-template-rows: 1fr 400px; }
+            #stage-area { border-left: none; border-top: 1px solid #ccc; }
+        }
+    </style>
 </head>
 <body>
 
-  <div class="header"><h1>RenCodes</h1></div>
-
-  <div id="app-container">
-    <div id="blocklyDiv"></div>
-    <div id="output-pane">
-      <button onclick="runCode()">▶ Run RenCode</button>
-      <div id="display"></div>
+<header>
+    <h2 style="margin:0; color: #818cf8;">RenCodes <span style="font-weight: 300; font-size: 0.8em;">v1.0</span></h2>
+    <div class="btn-group">
+        <button class="btn-reset" onclick="resetSprite()">Reset</button>
+        <button class="btn-run" onclick="runRenCode()">▶ Run Project</button>
     </div>
-  </div>
+</header>
 
-  <xml id="toolbox" style="display: none">
-    <category name="Logic" colour="#5b80a5">
-      <block type="controls_if"></block>
-      <block type="logic_compare"></block>
-    </category>
-    <category name="Loops" colour="#5ba55b">
-      <block type="controls_repeat_ext"></block>
-    </category>
-    <category name="RenCodes Specials" colour="#a55b80">
-      <block type="text_print"></block>
-    </category>
-  </xml>
+<div id="main-container">
+    <div id="blocklyDiv"></div>
 
-  <script>
-    // Initialize Blockly Workspace
-    const workspace = Blockly.inject('blocklyDiv', {
-      toolbox: document.getElementById('toolbox'),
-      scrollbars: true
-    });
-
-    function runCode() {
-      // Convert the blocks into JavaScript code
-      const code = Blockly.JavaScript.workspaceToCode(workspace);
-      try {
-        eval(code); // Execute the generated code
-      } catch (e) {
-        alert(e);
-      }
-    }
-  </script>
-</body>
-</html>
+    <div id="stage-area">
+        <div id="stage">
+            <img id="sprite" src="
