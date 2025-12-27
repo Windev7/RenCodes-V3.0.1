@@ -3,232 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RenCodes Professional</title>
+    <title>RenCodes | Professional IDE</title>
     
     <script src="https://unpkg.com/blockly/blockly.min.js"></script>
     <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
 
     <style>
         :root {
-            --brand: #4c97ff;
-            --dark-bg: #111827;
-            --panel: #1f2937;
-            --accent: #818cf8;
+            --bg-deep: #050505;
+            --panel-bg: #111111;
+            --accent: #00f2ff;
+            --blockly-main: #181818;
+            --text-dim: #888;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            background-color: var(--dark-bg);
-            color: white;
+        body, html { 
+            margin: 0; padding: 0; height: 100%; 
+            background: var(--bg-deep); color: white;
+            font-family: 'Inter', sans-serif; overflow: hidden;
+        }
+
+        /* Dashboard Layout */
+        .app-shell {
+            display: grid;
+            grid-template-columns: 240px 1fr 400px;
+            grid-template-rows: 60px 1fr;
             height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
 
+        /* Top Navigation */
         header {
-            padding: 10px 20px;
-            background: var(--panel);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #374151;
-            z-index: 10;
+            grid-column: 1 / span 3;
+            background: var(--panel-bg);
+            border-bottom: 1px solid #222;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px;
         }
 
-        /* Responsive Layout */
-        #container {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-            flex-direction: row;
+        /* Left Sidebar - Project Manager */
+        .sidebar {
+            background: var(--panel-bg);
+            border-right: 1px solid #222;
+            padding: 20px;
+            display: flex; flex-direction: column; gap: 15px;
         }
 
-        @media (max-width: 800px) {
-            #container { flex-direction: column; }
-            #stage-area { width: 100% !important; height: 300px; }
-            #blocklyArea { flex: 1; }
+        /* Workspace */
+        #blocklyArea { background: var(--blockly-main); position: relative; }
+        #blocklyDiv { position: absolute; inset: 0; }
+
+        /* Stage Area (Right) */
+        .stage-container {
+            background: #000;
+            border-left: 1px solid #222;
+            display: flex; flex-direction: column;
         }
 
-        #blocklyArea { flex: 1; position: relative; }
-        #blocklyDiv { position: absolute; top: 0; left: 0; right: 0; bottom: 0; }
-
-        #stage-area {
-            width: 380px;
-            background: #0f172a;
-            border-left: 1px solid #374151;
-            display: flex;
-            flex-direction: column;
-            padding: 15px;
-            gap: 15px;
-        }
-
-        #stage {
-            width: 100%;
-            height: 300px;
-            background: white;
-            border-radius: 12px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        .view-screen {
+            flex: 1; position: relative;
+            background: url('https://wallpaperaccess.com/full/39632.jpg') center/cover;
+            margin: 20px; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,242,255,0.1);
         }
 
         #sprite {
-            width: 60px;
-            position: absolute;
-            top: 120px;
-            left: 140px;
-            transition: transform 0.2s, top 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            position: absolute; width: 80px;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            transition: all 0.1s linear; /* Smooth walking animation */
         }
 
-        .controls {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+        /* Terminal/Console */
+        .terminal {
+            height: 150px; background: #000;
+            padding: 15px; font-family: monospace;
+            border-top: 1px solid #222; color: var(--accent);
+            font-size: 12px; overflow-y: auto;
         }
 
-        button {
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.2s;
+        /* Interaction Elements */
+        .project-card {
+            background: #1a1a1a; padding: 10px; border-radius: 6px;
+            border: 1px solid #333; cursor: pointer;
         }
+        
+        .btn {
+            background: var(--accent); color: black; border: none;
+            padding: 8px 18px; border-radius: 4px; font-weight: bold;
+            cursor: pointer; transition: 0.3s;
+        }
+        .btn:hover { filter: brightness(1.2); box-shadow: 0 0 15px var(--accent); }
 
-        .btn-go { background: #22c55e; color: white; }
-        .btn-stop { background: #ef4444; color: white; }
-        button:hover { opacity: 0.9; transform: translateY(-1px); }
-
-        #console {
-            background: #1e293b;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            color: #94a3b8;
-            height: 100px;
-            overflow-y: auto;
+        @media (max-width: 1000px) {
+            .app-shell { grid-template-columns: 1fr; grid-template-rows: 60px 300px 1fr 150px; }
+            .sidebar { display: none; }
         }
     </style>
 </head>
 <body>
 
-<header>
-    <div style="display:flex; align-items:center; gap:10px;">
-        <div style="width:30px; height:30px; background:var(--brand); border-radius:6px;"></div>
-        <h2 style="margin:0">RenCodes</h2>
-    </div>
-    <div class="controls">
-        <button class="btn-stop" onclick="resetAll()">Reset</button>
-        <button class="btn-go" onclick="runCode()">▶ Run</button>
-    </div>
-</header>
-
-<div id="container">
-    <div id="blocklyArea">
-        <div id="blocklyDiv"></div>
-    </div>
-
-    <div id="stage-area">
-        <div id="stage">
-            <img id="sprite" src="https://openclipart.org/download/216413/coniglio_rabbit.svg">
+<div class="app-shell">
+    <header>
+        <div style="font-weight: 900; letter-spacing: 2px;">REN<span style="color:var(--accent)">CODES</span> PRO</div>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn" style="background: #333; color: white;" onclick="saveProject()">Save</button>
+            <button class="btn" onclick="runInterpreter()">▶ Execute System</button>
         </div>
-        <div id="console">Log: Workspace ready...</div>
-    </div>
+    </header>
+
+    <aside class="sidebar">
+        <div style="color: var(--text-dim); font-size: 12px; text-transform: uppercase;">Assets</div>
+        <div class="project-card">Main_Sprite.png</div>
+        <div class="project-card">Background_Space.jpg</div>
+        <div class="project-card" onclick="playBeep()">Test_Sound.wav</div>
+    </aside>
+
+    <main id="blocklyArea">
+        <div id="blocklyDiv"></div>
+    </main>
+
+    <section class="stage-container">
+        <div class="view-screen">
+            <img id="sprite" src="https://openclipart.org/download/216413/coniglio_rabbit.svg">
+            <div id="bubble" style="position:absolute; background:white; color:black; padding:5px 10px; border-radius:10px; display:none;"></div>
+        </div>
+        <div class="terminal" id="terminal">
+            [System Ready] Welcome, Emir Seyf. <br>
+            > Waiting for block execution...
+        </div>
+    </section>
 </div>
 
 <xml id="toolbox" style="display: none">
-    <category name="Motion" colour="#4C97FF">
-        <block type="move_steps"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
-        <block type="rotate_sprite"><value name="DEG"><shadow type="math_number"><field name="NUM">15</field></shadow></value></block>
-        <block type="jump_sprite"></block>
+    <category name="Motion" colour="#00f2ff">
+        <block type="smooth_move"><value name="STEPS"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
+        <block type="rotate_instant"><value name="DEG"><shadow type="math_number"><field name="NUM">90</field></shadow></value></block>
+        <block type="glide_to_random"></block>
     </category>
-    <category name="Looks" colour="#9966FF">
-        <block type="change_color"></block>
-        <block type="say_text"><value name="TEXT"><shadow type="text"><field name="TEXT">Hello!</field></shadow></value></block>
-        <block type="visibility_sprite"></block>
+    <category name="Events" colour="#ffcc00">
+        <block type="on_start"></block>
     </category>
-    <category name="Control" colour="#FFAB19">
-        <block type="controls_repeat_ext"><value name="TIMES"><shadow type="math_number"><field name="NUM">10</field></shadow></value></block>
-        <block type="controls_if"></block>
+    <category name="Looks" colour="#9966ff">
+        <block type="say_bubble"><value name="TEXT"><shadow type="text"><field name="TEXT">RenCodes is live!</field></shadow></value></block>
+        <block type="change_ghost_effect"></block>
     </category>
-    <category name="Logic" colour="#5B80A5">
-        <block type="logic_compare"></block>
-        <block type="logic_operation"></block>
-        <block type="logic_boolean"></block>
-    </category>
-    <category name="Math" colour="#59C059">
-        <block type="math_number"></block>
-        <block type="math_arithmetic"></block>
-    </category>
-</xml>
-
-<script>
-    // --- 1. Custom Block Definitions ---
-    Blockly.defineBlocksWithJsonArray([
-        { "type": "move_steps", "message0": "Move %1 steps", "args0": [{ "type": "input_value", "name": "STEPS", "check": "Number" }], "previousStatement": null, "nextStatement": null, "colour": 230 },
-        { "type": "rotate_sprite", "message0": "Rotate %1 degrees", "args0": [{ "type": "input_value", "name": "DEG", "check": "Number" }], "previousStatement": null, "nextStatement": null, "colour": 230 },
-        { "type": "jump_sprite", "message0": "Jump!", "previousStatement": null, "nextStatement": null, "colour": 230 },
-        { "type": "change_color", "message0": "Change Color", "previousStatement": null, "nextStatement": null, "colour": 260 },
-        { "type": "say_text", "message0": "Say %1", "args0": [{ "type": "input_value", "name": "TEXT", "check": "String" }], "previousStatement": null, "nextStatement": null, "colour": 260 },
-        { "type": "visibility_sprite", "message0": "Toggle Visibility", "previousStatement": null, "nextStatement": null, "colour": 260 }
-    ]);
-
-    // --- 2. Generators ---
-    Blockly.JavaScript['move_steps'] = function(block) {
-        var steps = Blockly.JavaScript.valueToCode(block, 'STEPS', Blockly.JavaScript.ORDER_ATOMIC) || '0';
-        return `move(${steps});\n`;
-    };
-    Blockly.JavaScript['rotate_sprite'] = function(block) {
-        var deg = Blockly.JavaScript.valueToCode(block, 'DEG', Blockly.JavaScript.ORDER_ATOMIC) || '0';
-        return `rotate(${deg});\n`;
-    };
-    Blockly.JavaScript['jump_sprite'] = function() { return 'jump();\n'; };
-    Blockly.JavaScript['change_color'] = function() { return 'colorShift();\n'; };
-    Blockly.JavaScript['say_text'] = function(block) {
-        var text = Blockly.JavaScript.valueToCode(block, 'TEXT', Blockly.JavaScript.ORDER_ATOMIC) || "''";
-        return `log(${text});\n`;
-    };
-    Blockly.JavaScript['visibility_sprite'] = function() { return 'toggleVis();\n'; };
-
-    // --- 3. Engine Logic ---
-    const sprite = document.getElementById('sprite');
-    let x = 140, angle = 0, hue = 0, visible = true;
-
-    function move(d) { x += parseInt(d); sprite.style.left = x + 'px'; }
-    function rotate(d) { angle += parseInt(d); sprite.style.transform = `rotate(${angle}deg)`; }
-    function jump() { 
-        sprite.style.top = '50px'; 
-        setTimeout(() => sprite.style.top = '120px', 300); 
-    }
-    function colorShift() { hue += 45; sprite.style.filter = `underline hue-rotate(${hue}deg)`; }
-    function toggleVis() { visible = !visible; sprite.style.opacity = visible ? 1 : 0; }
-    function log(t) { document.getElementById('console').innerText = "Sprite says: " + t; }
-
-    function resetAll() {
-        x = 140; angle = 0; hue = 0; visible = true;
-        sprite.style = "";
-        sprite.style.left = '140px';
-        sprite.style.top = '120px';
-        document.getElementById('console').innerText = "Log: Reset complete.";
-    }
-
-    // --- 4. Initialization ---
-    const workspace = Blockly.inject('blocklyDiv', {
-        toolbox: document.getElementById('toolbox'),
-        theme: Blockly.Themes.Dark,
-        renderer: 'zelos',
-        zoom: { controls: true, wheel: true, startScale: 0.8 }
-    });
-
-    // Make it responsive
-    window.addEventListener('resize', () => Blockly.svgResize(workspace));
-
-    function runCode() {
-        const code = Blockly.JavaScript.workspaceToCode(workspace);
-        try { eval(code); } catch (e) { alert(e); }
-    }
-</script>
-
-</body>
-</html>
+    <category name="Control" colour="#ffab19">
+        <block type="wait_seconds"><value name="SEC"><shadow type="math_number"><field name
