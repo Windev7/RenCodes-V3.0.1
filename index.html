@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>RenCodes - Block Coding</title>
+  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <style>
+    #app-container { display: flex; height: 90vh; }
+    #blocklyDiv { width: 70%; height: 100%; }
+    #output-pane { width: 30%; background: #f0f0f0; padding: 20px; border-left: 2px solid #ccc; }
+    .header { height: 10vh; background: #4c97ff; color: white; display: flex; align-items: center; padding-left: 20px; }
+  </style>
+</head>
+<body>
+
+  <div class="header"><h1>RenCodes</h1></div>
+
+  <div id="app-container">
+    <div id="blocklyDiv"></div>
+    <div id="output-pane">
+      <button onclick="runCode()">▶ Run RenCode</button>
+      <div id="display"></div>
+    </div>
+  </div>
+
+  <xml id="toolbox" style="display: none">
+    <category name="Logic" colour="#5b80a5">
+      <block type="controls_if"></block>
+      <block type="logic_compare"></block>
+    </category>
+    <category name="Loops" colour="#5ba55b">
+      <block type="controls_repeat_ext"></block>
+    </category>
+    <category name="RenCodes Specials" colour="#a55b80">
+      <block type="text_print"></block>
+    </category>
+  </xml>
+
+  <script>
+    // Initialize Blockly Workspace
+    const workspace = Blockly.inject('blocklyDiv', {
+      toolbox: document.getElementById('toolbox'),
+      scrollbars: true
+    });
+
+    function runCode() {
+      // Convert the blocks into JavaScript code
+      const code = Blockly.JavaScript.workspaceToCode(workspace);
+      try {
+        eval(code); // Execute the generated code
+      } catch (e) {
+        alert(e);
+      }
+    }
+  </script>
+</body>
+</html>
